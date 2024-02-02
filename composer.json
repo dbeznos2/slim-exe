@@ -1,0 +1,23 @@
+{
+    "name": "dbeznos2/slim-exe",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Dbeznos2\\SlimExe\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "dbeznos2",
+            "email": "dmytro.beznoskovych@jobtrek.ch"
+        }
+    ],
+    "require": {
+        "slim/slim": "4.*",
+        "slim/psr7": "^1.6",
+        "slim/twig-view": "^3.3",
+      "ext-pdo": "*",
+        "symfony/var-dumper": "^7.0"
+    }
+}
