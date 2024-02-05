@@ -46,9 +46,9 @@ $app->get('/', function (Request $request, Response $response)  use ($pdo) {
 })->setName('profile');
 
 //adding input to db
-$app->post('/submit', function (Request $request, Response $response, $args) use ($pdo) {
+$app->post('/submit', function (Request $request, Response $response) use ($pdo) {
     $data = $request->getParsedBody();
-    $task = $data['name']; // Assuming 'name' corresponds to the task name
+    $task = $data['name'];
 
     $queryMaxId = $pdo->prepare("select max(ID) from todo" );
 
@@ -64,6 +64,18 @@ $app->post('/submit', function (Request $request, Response $response, $args) use
 
     return $response->withHeader('Location', '/')->withStatus(302);
 });
+
+$app->post('/delete', function (Request $request, Response $response) use ($pdo) {
+    $data = $request->getParsedBody();
+    $task_id = $data['task_id'];
+
+    //delete the task with the specified ID
+    $query = $pdo->prepare("delete from todo where ID = ?");
+    $query->execute([$task_id]);
+
+    return $response->withHeader('Location', '/')->withStatus(302);
+});
+
 
 
 $app->run();
