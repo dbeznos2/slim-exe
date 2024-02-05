@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . "/../vendor/autoload.php";
+
 session_start();
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -29,30 +31,32 @@ $app->add(TwigMiddleware::create($app, $twig));
 $app->addRoutingMiddleware();
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
-$app->get('/todo/{id}', function ($request, $response)  use ($pdo) {
+
+// display page
+$app->get('/', function (Request $request, Response $response)  use ($pdo) {
 
     $query = $pdo->prepare("select * from todo");
     $query->execute();
     $row = $query->fetchAll(PDO::FETCH_ASSOC);
 
     $view = Twig::fromRequest($request);
-    return $view->render($response, 'home.twig', [
+    return $view->render($response, 'todoLayout.twig', [
         'allTodo' => $row
     ]);
 })->setName('profile');
 
+//adding input to db
+$app->post('/submit', function (Request $request, Response $response, $args) use ($pdo) {
+    $data = $request->getParsedBody();
+    $task = $data['name']; // Assuming 'name' corresponds to the task name
 
-$app->get('/', function ($request, $response)  use ($pdo) {
+    $query = $pdo->prepare("INSERT INTO todo (Task) VALUES (?)");
 
-    $query = $pdo->prepare("select * from todo");
-    $query->execute();
-    $row = $query->fetchAll(PDO::FETCH_ASSOC);
+    $query->execute([$task]);
 
-    $view = Twig::fromRequest($request);
-    return $view->render($response, 'home.twig', [
-        'allTodo' => $row
-    ]);
-})->setName('profile');
+    return $response->withHeader('Location', '/')->withStatus(302);
+});
 
-// check if there is a root that I want in url
+
+
 $app->run();
