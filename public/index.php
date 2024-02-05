@@ -37,11 +37,11 @@ $app->get('/', function (Request $request, Response $response)  use ($pdo) {
 
     $query = $pdo->prepare("select * from todo");
     $query->execute();
-    $row = $query->fetchAll(PDO::FETCH_ASSOC);
+    $todos = $query->fetchAll(PDO::FETCH_ASSOC);
 
     $view = Twig::fromRequest($request);
     return $view->render($response, 'todoLayout.twig', [
-        'allTodo' => $row
+        'allTodo' => $todos
     ]);
 })->setName('profile');
 
@@ -50,17 +50,20 @@ $app->post('/submit', function (Request $request, Response $response, $args) use
     $data = $request->getParsedBody();
     $task = $data['name']; // Assuming 'name' corresponds to the task name
 
-    $queryMaxId = $pdo->prepare("select MAX(ID) from todo" );
+    $queryMaxId = $pdo->prepare("select max(ID) from todo" );
+
     $queryMaxId->execute();
+
     $maxId = $queryMaxId->fetchColumn();
+
     $order = $maxId + 1;
+
     $query = $pdo->prepare("insert into todo (Task, ID) values (?, ?)");
 
     $query->execute([$task, $order]);
 
     return $response->withHeader('Location', '/')->withStatus(302);
 });
-
 
 
 $app->run();
