@@ -50,9 +50,13 @@ $app->post('/submit', function (Request $request, Response $response, $args) use
     $data = $request->getParsedBody();
     $task = $data['name']; // Assuming 'name' corresponds to the task name
 
-    $query = $pdo->prepare("INSERT INTO todo (Task) VALUES (?)");
+    $queryMaxId = $pdo->prepare("select MAX(ID) from todo" );
+    $queryMaxId->execute();
+    $maxId = $queryMaxId->fetchColumn();
+    $order = $maxId + 1;
+    $query = $pdo->prepare("insert into todo (Task, ID) values (?, ?)");
 
-    $query->execute([$task]);
+    $query->execute([$task, $order]);
 
     return $response->withHeader('Location', '/')->withStatus(302);
 });
