@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . "/../vendor/autoload.php";
+require_once "fetchTodosFunc.php";
 
 session_start();
 use Psr\Http\Message\ResponseInterface as Response;
@@ -45,25 +46,37 @@ $app->get('/', function (Request $request, Response $response)  use ($pdo) {
     ]);
 })->setName('profile');
 
-//adding input to db
+
 $app->post('/submit', function (Request $request, Response $response) use ($pdo) {
     $data = $request->getParsedBody();
     $task = $data['name'];
 
-    $queryMaxId = $pdo->prepare("select max(ID) from todo" );
+    if (mb_strlen($task) < 3 || mb_strlen($task) > 20) {
+        $errorMessage = "Todo should be between 3 and 20 characters long.";
+        $view = Twig::fromRequest($request);
+        return $view->render($response, 'todoLayout.twig', [
+            'errorMessage' => $errorMessage,
+            'allTodo' => fetchTodos($pdo) // Fetch todos from the database
+        ]);
+    } else {
+        $queryMaxId = $pdo->prepare("select max(ID) from todo" );
+        $queryMaxId->execute();
+        $maxId = $queryMaxId->fetchColumn();
+        $order = $maxId + 1;
 
-    $queryMaxId->execute();
+        $query = $pdo->prepare("insert into todo (Task, ID) values (?, ?)");
+        $query->execute([$task, $order]);
 
-    $maxId = $queryMaxId->fetchColumn();
-
-    $order = $maxId + 1;
-
-    $query = $pdo->prepare("insert into todo (Task, ID) values (?, ?)");
-
-    $query->execute([$task, $order]);
-
-    return $response->withHeader('Location', '/')->withStatus(302);
+        $successMessage = "Todo added successfully.";
+        $view = Twig::fromRequest($request);
+        return $view->render($response, 'todoLayout.twig', [
+            'successMessage' => $successMessage,
+            'allTodo' => fetchTodos($pdo) // Fetch todos from the database
+        ]);
+    }
 });
+
+
 
 $app->post('/delete', function (Request $request, Response $response) use ($pdo) {
     $data = $request->getParsedBody();

@@ -6,11 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DOTO</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .hidden {
-            display: none;
-        }
-    </style>
 </head>
 <body>
 <div class="flex items-center justify-center h-screen">
@@ -19,6 +14,12 @@
             <h1 class="mr-6 text-4xl font-bold text-purple-600">DOTO</h1>
         </div>
         <div>
+            {% if errorMessage %}
+                <div class="text-red-600">{{ errorMessage }}</div>
+            {% endif %}
+            {% if successMessage %}
+                <div class="text-green-600">{{ successMessage }}</div>
+            {% endif %}
             <form action="/submit" method="post" class="flex">
                 <input type="text" name="name" placeholder="Needs to be done today?"
                        class="w-full px-2 py-3 border rounded outline-none border-grey-600" />
@@ -31,15 +32,9 @@
             {% for todo in allTodo %}
                 <li class="relative flex items-center justify-between px-2 py-6 border-b">
                     <form action="/edit" method="post">
-
-                        <!---- allows to know the id ---->
                         <input type="hidden" name="task_id" value="{{ todo.ID }}">
-
-                        <!---- displays the current text of the task ----->
                         <input type="text" name="edited_task" value="{{ todo.Task }}" class="edit-input">
-                        <input type="submit" style="display:none" />
                     </form>
-
 
                     <form action="/delete" method="post" >
                         <input type="hidden" name="task_id" value="{{ todo.ID }}">
@@ -55,7 +50,5 @@
         </ul>
     </div>
 </div>
-
-
 </body>
 </html>
