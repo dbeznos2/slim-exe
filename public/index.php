@@ -77,5 +77,16 @@ $app->post('/delete', function (Request $request, Response $response) use ($pdo)
 });
 
 
+$app->post('/edit', function (Request $request, Response $response) use ($pdo) {
+    $data = $request->getParsedBody();
+
+    $taskId = $data['task_id'];
+    $editedTask = $data['edited_task'];
+
+    $query = $pdo->prepare("update todo set Task = :edited_task where ID = :task_id");
+    $query->execute(['edited_task' => $editedTask, 'task_id' => $taskId]);
+
+    return $response->withHeader('Location', '/')->withStatus(302);
+});
 
 $app->run();
