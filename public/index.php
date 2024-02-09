@@ -110,7 +110,22 @@ $app->post('/edit', function (Request $request, Response $response) use ($pdo) {
     return $response->withHeader('Location', '/')->withStatus(302);
 });
 
+$app->get('/sort', function (Request $request, Response $response) use ($pdo) {
+    $sortCriteria = $request->getQueryParams()['sortTodo'] ?? 'unset';
 
+    $query = match ($sortCriteria) {
+        'alphabetic' => $pdo->prepare("select * from todo order by Task"),
+        'nonAlphabetic' => $pdo->prepare("select * from todo order by Task desc"),
+        default => $pdo->prepare("select * from todo"),
+    };
+    $query->execute();
+    $view = Twig::fromRequest($request);
+
+    return $view->render($response, 'todoLayout.twig', [
+        'allTodo' => $query->fetchAll()
+    ]);
+
+});
 
 
 $app->run();

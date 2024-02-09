@@ -14,8 +14,18 @@
             <h1 class="text-4xl font-bold text-purple-600">DOTO</h1>
         </div>
 
-        <div>
+        <form action="/sort" method="get" class="flex items-center mb-6">
+            <select name="sortTodo" class="p-1">
+                <option value="unset">Unset</option>
+                <option value="alphabetic">Alphabetic</option>
+                <option value="nonAlphabetic">Non Alphabetic</option>
+            </select>
+            <button type="submit" class="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-0.5 px-3 border border-grey-600 rounded shadow ml-2">
+                Sort
+            </button>
+        </form>
 
+        <div>
             {% if errorMessage %}
                 <div class="text-red-600">{{ errorMessage }}</div>
             {% endif %}
