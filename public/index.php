@@ -33,14 +33,31 @@ $app->addRoutingMiddleware();
 $errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
 
-// display page
 $app->get('/', function (Request $request, Response $response)  use ($pdo) {
+    $view = Twig::fromRequest($request);
+
+    if (isset($_SESSION["error"])) {
+        $errorMessage = $_SESSION["error"];
+        unset($_SESSION["error"]);
+        return $view->render($response, 'todoLayout.twig', [
+            'errorMessage' => $errorMessage,
+            'allTodo' => fetchTodos($pdo)
+        ]);
+    }
+
+    if (isset($_SESSION['success'])) {
+        $successMessage = $_SESSION['success'];
+        unset($_SESSION["success"]);
+        return $view->render($response, 'todoLayout.twig', [
+            'successMessage' => $successMessage,
+            'allTodo' => fetchTodos($pdo)
+        ]);
+    }
 
     $query = $pdo->prepare("select * from todo");
     $query->execute();
     $todos = $query->fetchAll(PDO::FETCH_ASSOC);
 
-    $view = Twig::fromRequest($request);
     return $view->render($response, 'todoLayout.twig', [
         'allTodo' => $todos
     ]);
@@ -51,13 +68,9 @@ $app->post('/submit', function (Request $request, Response $response) use ($pdo)
     $data = $request->getParsedBody();
     $task = $data['name'];
 
+    // messages
     if (mb_strlen($task) < 3 || mb_strlen($task) > 20) {
-        $errorMessage = "Todo should be between 3 and 20 characters long.";
-        $view = Twig::fromRequest($request);
-        return $view->render($response, 'todoLayout.twig', [
-            'errorMessage' => $errorMessage,
-            'allTodo' => fetchTodos($pdo) // Fetch todos from the database
-        ]);
+        $_SESSION["error"] = "Todo should be between 3 and 20 characters long.";
     } else {
         $queryMaxId = $pdo->prepare("select max(ID) from todo" );
         $queryMaxId->execute();
@@ -67,13 +80,9 @@ $app->post('/submit', function (Request $request, Response $response) use ($pdo)
         $query = $pdo->prepare("insert into todo (Task, ID) values (?, ?)");
         $query->execute([$task, $order]);
 
-        $successMessage = "Todo added successfully.";
-        $view = Twig::fromRequest($request);
-        return $view->render($response, 'todoLayout.twig', [
-            'successMessage' => $successMessage,
-            'allTodo' => fetchTodos($pdo) // Fetch todos from the database
-        ]);
+        $_SESSION["success"] = "Todo added successfully.";
     }
+    return $response->withHeader('Location', '/')->withStatus(302);
 });
 
 
@@ -82,7 +91,6 @@ $app->post('/delete', function (Request $request, Response $response) use ($pdo)
     $data = $request->getParsedBody();
     $task_id = $data['task_id'];
 
-    //delete the task with the specified ID
     $query = $pdo->prepare("delete from todo where ID = ?");
     $query->execute([$task_id]);
 
@@ -101,5 +109,8 @@ $app->post('/edit', function (Request $request, Response $response) use ($pdo) {
 
     return $response->withHeader('Location', '/')->withStatus(302);
 });
+
+
+
 
 $app->run();
